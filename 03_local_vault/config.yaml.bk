@@ -1,0 +1,5 @@
+vault:
+  address: 'my-address'
+  role-id: 'my-role-id'
+  secret-id: 'my-secret-id'
+  secrets-root: 'apps/data/ddis-asteroid-infra/'
