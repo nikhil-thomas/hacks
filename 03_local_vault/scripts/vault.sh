@@ -13,7 +13,7 @@ VAULT_TOKEN='root'
 VAULT_CONTAINER_NAME='my-vault'
 VAULT_IMAGE_NAME='hashicorp/vault:latest'
 
-# Function to clean up the Vault container
+# Function to clean up the Vault containerreconcileRawDataLanding
 cleanup() {
     echo "Cleaning up the Vault container..."
     ${DOCKER} rm -f ${VAULT_CONTAINER_NAME}
@@ -68,7 +68,7 @@ vault_cmd "policy write app-policy - <<'EOF'
 ${app_policy}
 EOF
 "
-
+git
 # Read the app-policy
 [[ "${DEBUG}" == 'true' ]] && vault_cmd "policy read app-policy"
 
