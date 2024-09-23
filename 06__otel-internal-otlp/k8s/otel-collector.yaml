@@ -1,0 +1,84 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: otel-collector-config
+  labels:
+    app: otel-collector
+data:
+  otel-collector-config.yaml: |
+    receivers:
+      otlp/internal_metrics:
+        protocols:
+          grpc:
+            endpoint: localhost:14317
+    exporters:
+      prometheus/exporter:
+        endpoint: "0.0.0.0:8890"
+    service:
+      pipelines:
+        metrics:
+          receivers: [otlp/internal_metrics]
+          exporters: [prometheus/exporter]
+      telemetry:
+        metrics:
+          level: detailed
+          readers:
+            - periodic:
+                interval: 10000
+                exporter:
+                  otlp:
+                    protocol: grpc/protobuf
+                    endpoint: localhost:14317
+        
+
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: otel-collector
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: otel-collector
+  template:
+    metadata:
+      labels:
+        app: otel-collector
+    spec:
+      containers:
+        - name: otel-collector
+          image: otel/opentelemetry-collector-contrib
+          command:
+            - "/otelcol-contrib"
+            - "--config=/conf/otel-collector-config.yaml"
+          ports:
+            - containerPort: 8891
+            - containerPort: 8890
+            - containerPort: 8889
+          volumeMounts:
+            - name: otel-collector-config-vol
+              mountPath: /conf
+      volumes:
+        - name: otel-collector-config-vol
+          configMap:
+            name: otel-collector-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: otel-collector
+spec:
+  ports:
+    - name: telemetry
+      port: 8891
+      targetPort: 8891
+    - name: prometheus-exporter
+      port: 8890
+      targetPort: 8890
+    - name: prometheus-receiver
+      port: 8889
+      targetPort: 8889
+  selector:
+    app: otel-collector
